@@ -1,5 +1,5 @@
 package com.example.eyes;
-
+/**main**/
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
