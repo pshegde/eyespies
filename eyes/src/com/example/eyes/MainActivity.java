@@ -5,11 +5,13 @@ import android.app.Activity;
 import android.view.Menu;
 
 public class MainActivity extends Activity {
-
+	private Game game1;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        game1 = new Game(this);
+        //setContentView(R.layout.activity_main);
+        setContentView(game1);
     }
 
     @Override
