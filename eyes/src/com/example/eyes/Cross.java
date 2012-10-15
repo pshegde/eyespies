@@ -14,7 +14,7 @@ public class Cross extends Cell {
     }
  
     public void draw(Canvas g, Resources res, int x, int y, int w, int h) {
-        Bitmap im = BitmapFactory.decodeResource(res, R.drawable.cruz);
+        Bitmap im = BitmapFactory.decodeResource(res, R.drawable.cross);
         g.drawBitmap(im, null, new Rect(x*w, y*h, (x*w)+w, (y*h)+h), new Paint());
     }
  

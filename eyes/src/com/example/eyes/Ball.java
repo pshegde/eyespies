@@ -14,7 +14,7 @@ public class Ball extends Cell {
     }
  
     public void draw(Canvas g, Resources res, int x, int y, int w, int h) {
-    Bitmap im = BitmapFactory.decodeResource(res, R.drawable.bola);
+    Bitmap im = BitmapFactory.decodeResource(res, R.drawable.zero);
     g.drawBitmap(im, null, new Rect(x*w, y*h, (x*w)+w, (y*h)+h), new Paint());
     }
  
