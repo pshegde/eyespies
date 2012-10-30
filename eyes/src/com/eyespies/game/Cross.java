@@ -1,13 +1,13 @@
 package com.eyespies.game;
 
-import com.example.eyes.R;
-
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+
+import com.eyespies.R;
  
 public class Cross extends Cell {
  

