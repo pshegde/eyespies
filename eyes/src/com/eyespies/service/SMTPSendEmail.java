@@ -1,7 +1,11 @@
 package com.eyespies.service;
 
+import java.io.File;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -13,6 +17,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+
+import android.os.Environment;
 
 
 public class SMTPSendEmail extends Authenticator{
@@ -43,7 +49,21 @@ public class SMTPSendEmail extends Authenticator{
 	    emailMessage.setSubject("new email");    
 	    msgBody.setText(body);   
 	    bodyMultipart.addBodyPart(msgBody);
+	    
+	    /******/
+        DataSource source = new FileDataSource(new File(
+                Environment.getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg"));
+        MimeBodyPart messageBodyPart = new MimeBodyPart();
+        messageBodyPart.setDataHandler(new DataHandler(source));
+
+        messageBodyPart.setFileName(Environment
+                .getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg");
+        messageBodyPart.setDisposition(MimeBodyPart.INLINE);
+        bodyMultipart.addBodyPart(messageBodyPart);
+        
 	    emailMessage.setContent(bodyMultipart);
+	    /**************/
+	   
 	    Transport transport = session.getTransport("smtp");
 
 	    transport.connect(user, password);
