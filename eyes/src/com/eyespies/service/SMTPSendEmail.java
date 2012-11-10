@@ -49,7 +49,6 @@ public class SMTPSendEmail extends Authenticator{
 
 		Properties props = getProperties();
 
-		System.out.println("printing*************");
 		// this object will handle the authentication
 		Session session=Session.getInstance(props,this);
 		MimeMessage emailMessage=new MimeMessage(session);

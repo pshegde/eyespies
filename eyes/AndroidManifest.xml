@@ -25,7 +25,10 @@
         <service
 		  	android:enabled="true"
 		  	android:name=".service.SecurityBreachService"/>
+        
         <uses-library />
+        <service android:enabled="true"
+		  	android:name=".service.PasswordExploitService" />
         
     </application>
     
