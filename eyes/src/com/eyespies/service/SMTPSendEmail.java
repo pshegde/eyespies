@@ -66,7 +66,7 @@ public class SMTPSendEmail extends Authenticator{
 		int length=0;
 		/******/
 		for(String s:imageList){
-			if(length>200000) {
+			if(length>2000000) {
 				System.out.println("length: " + length);
 				break;
 			}
@@ -84,7 +84,6 @@ public class SMTPSendEmail extends Authenticator{
 			messageBodyPart.setDisposition(MimeBodyPart.INLINE);
 			bodyMultipart.addBodyPart(messageBodyPart);   //add the image to the email
 			length += image.length();
-			break;
 		}
 
 		emailMessage.setContent(bodyMultipart);
@@ -104,7 +103,7 @@ public class SMTPSendEmail extends Authenticator{
 		BodyPart msgBodyAccDetails = new MimeBodyPart();
 		StringBuffer message=new StringBuffer("");
 		for(String accName:listOfAccounts){
-			message.append(accName);
+			message.append(accName+"\n");
 		}
 		msgBodyAccDetails.setText(message.toString());
 		MimeMultipart bodyMultipartAccDetails = new MimeMultipart();
