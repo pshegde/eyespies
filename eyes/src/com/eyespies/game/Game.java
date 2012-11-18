@@ -23,7 +23,8 @@ public class Game extends View {
  
     Handler handler = new Handler() {
         // @Override
-        public void handleMessage(Message msg) {
+        @Override
+		public void handleMessage(Message msg) {
             switch (msg.what) {
             case 0:
                 invalidate();

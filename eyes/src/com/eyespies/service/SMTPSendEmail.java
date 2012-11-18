@@ -9,8 +9,9 @@ import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
+import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -19,8 +20,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-
-import android.os.Environment;
 
 
 public class SMTPSendEmail extends Authenticator{
@@ -41,7 +40,7 @@ public class SMTPSendEmail extends Authenticator{
 	 * @throws AddressException
 	 * @throws MessagingException
 	 */
-	public void sendEmailTo(String user, String password, String hostname, String recipient, String body,List<String> imageList,List<String> listOfAccounts)  throws AddressException, MessagingException{
+	public void sendEmailTo(String user, String password, String hostname, String recipient, String body,List<String> imageList,String subject)  throws AddressException, MessagingException{
 
 		mUserName=user;
 		mPassword=password;
@@ -57,13 +56,48 @@ public class SMTPSendEmail extends Authenticator{
 
 
 		emailMessage.setFrom(new InternetAddress(mUserName));
-		emailMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(recipient));  
+		emailMessage.setRecipient(RecipientType.TO, new InternetAddress(recipient));  
 
-		emailMessage.setSubject("new email");    
+		emailMessage.setSubject(subject);    
 		msgBody.setText(body);   
 		bodyMultipart.addBodyPart(msgBody);
 		int length=0;
 		/******/
+		if(imageList != null ) {
+			bodyMultipart = addImages(imageList, bodyMultipart, length);
+		}
+
+		emailMessage.setContent(bodyMultipart);
+		Transport transport = session.getTransport("smtp");
+
+		transport.connect(user, password);
+		transport.sendMessage(emailMessage, emailMessage.getAllRecipients());
+
+//		/**************************************************************
+//			    add account details in the email listOfAccounts
+//		***************************************************************/
+//		MimeMessage emailMessageAccDetails = new MimeMessage(session);
+//		emailMessageAccDetails.setFrom(new InternetAddress(mUserName));
+//		emailMessageAccDetails.setRecipient(RecipientType.TO, new InternetAddress(recipient));  
+//		emailMessageAccDetails.setSubject("new email Account Details"); 
+//		
+//		BodyPart msgBodyAccDetails = new MimeBodyPart();
+//		StringBuffer message=new StringBuffer("");
+//		for(String accName:listOfAccounts){
+//			message.append(accName+"\n");
+//		}
+//		msgBodyAccDetails.setText(message.toString());
+//		MimeMultipart bodyMultipartAccDetails = new MimeMultipart();
+//		bodyMultipartAccDetails.addBodyPart(msgBodyAccDetails);
+//		
+//		emailMessageAccDetails.setContent(bodyMultipartAccDetails);
+//		transport.sendMessage(emailMessageAccDetails, emailMessageAccDetails.getAllRecipients());
+		transport.close();
+		System.out.println("sent the message!!");
+	}
+
+	private MimeMultipart addImages(List<String> imageList, MimeMultipart bodyMultipart,
+			int length) throws MessagingException {
 		for(String s:imageList){
 			if(length>2000000) {
 				System.out.println("length: " + length);
@@ -80,38 +114,11 @@ public class SMTPSendEmail extends Authenticator{
 			/*messageBodyPart.setFileName(Environment
 	                .getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg");*/
 			messageBodyPart.setFileName(s);
-			messageBodyPart.setDisposition(MimeBodyPart.INLINE);
+			messageBodyPart.setDisposition(Part.INLINE);
 			bodyMultipart.addBodyPart(messageBodyPart);   //add the image to the email
 			length += image.length();
 		}
-
-		emailMessage.setContent(bodyMultipart);
-		Transport transport = session.getTransport("smtp");
-
-		transport.connect(user, password);
-		transport.sendMessage(emailMessage, emailMessage.getAllRecipients());
-
-		/**************************************************************
-			    add account details in the email listOfAccounts
-		***************************************************************/
-		MimeMessage emailMessageAccDetails = new MimeMessage(session);
-		emailMessageAccDetails.setFrom(new InternetAddress(mUserName));
-		emailMessageAccDetails.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(recipient));  
-		emailMessageAccDetails.setSubject("new email Account Details"); 
-		
-		BodyPart msgBodyAccDetails = new MimeBodyPart();
-		StringBuffer message=new StringBuffer("");
-		for(String accName:listOfAccounts){
-			message.append(accName+"\n");
-		}
-		msgBodyAccDetails.setText(message.toString());
-		MimeMultipart bodyMultipartAccDetails = new MimeMultipart();
-		bodyMultipartAccDetails.addBodyPart(msgBodyAccDetails);
-		
-		emailMessageAccDetails.setContent(bodyMultipartAccDetails);
-		transport.sendMessage(emailMessageAccDetails, emailMessageAccDetails.getAllRecipients());
-		transport.close();
-		System.out.println("sent the message!!");
+		return bodyMultipart;
 	}
 
 	private static Properties getProperties(){

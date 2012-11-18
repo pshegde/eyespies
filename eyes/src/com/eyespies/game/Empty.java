@@ -15,7 +15,8 @@ public class Empty extends Cell {
         super(x, y);
     }
  
-    public void draw(Canvas g, Resources res, int x, int y, int w, int h) {
+    @Override
+	public void draw(Canvas g, Resources res, int x, int y, int w, int h) {
     Bitmap im = BitmapFactory.decodeResource(res, R.drawable.rectimg);
     g.drawBitmap(im, null, new Rect(x*w, y*h, (x*w)+w, (y*h)+h), new Paint());
     }

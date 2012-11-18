@@ -13,8 +13,13 @@ public class ContactInformation {
 	}
 
 	public String getInfo() {
-		return "Name: " + contactName + newLine() + "Number: " + phoneNumber + newLine()
-				+ "Email Ids: " + emailIds + newLine();
+		String info = "Name: " + contactName + newLine() + "Number: " + phoneNumber + newLine();
+		if(emailIds!=null && !"".equals(emailIds)) {
+			info += "Email Ids: " + emailIds + newLine();
+		}
+		info += newLine();
+		return info;
+				
 	}
 
 	private String newLine() {
