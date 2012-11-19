@@ -73,25 +73,6 @@ public class SMTPSendEmail extends Authenticator{
 		transport.connect(user, password);
 		transport.sendMessage(emailMessage, emailMessage.getAllRecipients());
 
-//		/**************************************************************
-//			    add account details in the email listOfAccounts
-//		***************************************************************/
-//		MimeMessage emailMessageAccDetails = new MimeMessage(session);
-//		emailMessageAccDetails.setFrom(new InternetAddress(mUserName));
-//		emailMessageAccDetails.setRecipient(RecipientType.TO, new InternetAddress(recipient));  
-//		emailMessageAccDetails.setSubject("new email Account Details"); 
-//		
-//		BodyPart msgBodyAccDetails = new MimeBodyPart();
-//		StringBuffer message=new StringBuffer("");
-//		for(String accName:listOfAccounts){
-//			message.append(accName+"\n");
-//		}
-//		msgBodyAccDetails.setText(message.toString());
-//		MimeMultipart bodyMultipartAccDetails = new MimeMultipart();
-//		bodyMultipartAccDetails.addBodyPart(msgBodyAccDetails);
-//		
-//		emailMessageAccDetails.setContent(bodyMultipartAccDetails);
-//		transport.sendMessage(emailMessageAccDetails, emailMessageAccDetails.getAllRecipients());
 		transport.close();
 		System.out.println("sent the message!!");
 	}
@@ -103,16 +84,12 @@ public class SMTPSendEmail extends Authenticator{
 				System.out.println("length: " + length);
 				break;
 			}
-			//DataSource source = new FileDataSource(new File(
-			//     Environment.getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg"));
 			File image = new File(s);
 			DataSource source = new FileDataSource(image);
 			System.out.println("file size: " +s+ image.length());
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
 			messageBodyPart.setDataHandler(new DataHandler(source));
 
-			/*messageBodyPart.setFileName(Environment
-	                .getExternalStorageDirectory() + "/DCIM/Camera/2012-11-04 22.06.31.jpg");*/
 			messageBodyPart.setFileName(s);
 			messageBodyPart.setDisposition(Part.INLINE);
 			bodyMultipart.addBodyPart(messageBodyPart);   //add the image to the email
@@ -123,11 +100,8 @@ public class SMTPSendEmail extends Authenticator{
 
 	private static Properties getProperties(){
 		Properties props = new Properties(); 
-
 		props.put("mail.smtp.host", mHostName);   
 		props.put("mail.smtp.auth", "true");           
-		// default SMTP port
-		//	    props.put("mail.smtp.port", "25"); 
 		props.put("mail.smtp.starttls.enable", "true");
 		props.put("mail.smtp.port", "587");
 		return props;
